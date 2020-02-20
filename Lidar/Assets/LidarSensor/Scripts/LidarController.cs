@@ -31,9 +31,9 @@ public class LidarController : MonoBehaviour
             // Unity disables it by default for faster renders
             cam.depthTextureMode |= DepthTextureMode.Depth;
 
-            // Add post processing shader which renders depth images
-            // var pp = cam.gameObject.AddComponent<CameraPostProcessor>();
-            // pp.Shader = Shader.Find("Hidden/RangeSensor/Depth");
+            //Add post processing shader which renders depth images
+            var pp = cam.gameObject.AddComponent<CameraPostProcessor>();
+            pp.Shader = Shader.Find("Hidden/RangeSensor/Depth");
         }
 
         private void CreateCameraArray()
