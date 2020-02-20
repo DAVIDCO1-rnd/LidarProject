@@ -1,4 +1,4 @@
-Shader "Hidden/LidarSensor/Depth"
+Shader "LidarSensor/Depth"
 {
     Properties
     {
@@ -16,7 +16,7 @@ Shader "Hidden/LidarSensor/Depth"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
-            #include "../../Common/Shaders/DepthCommon.cginc"
+            #include "DepthCommon.cginc"
 
             struct v2f
             {

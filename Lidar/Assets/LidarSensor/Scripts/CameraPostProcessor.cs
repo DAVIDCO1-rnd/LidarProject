@@ -10,17 +10,21 @@ public class CameraPostProcessor : MonoBehaviour
 
     private void Start()
     {
-        if (Shader != null)
-            m_material = new Material(Shader);
+        // if (Shader != null)
+        //     m_material = new Material(Shader);
 
-        m_flipMaterial = new Material(Shader.Find("Hidden/FlipShader"));
+        // m_flipMaterial = new Material(Shader.Find("Hidden/FlipShader"));
+
+        m_material = new Material(Shader);
     }
 
     private void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
-        if (m_material != null)
-            Graphics.Blit(src, src, m_material);
+        // if (m_material != null)
+        //     Graphics.Blit(src, src, m_material);
 
-        Graphics.Blit(src, dest, m_flipMaterial);
+        // Graphics.Blit(src, dest, m_flipMaterial);
+
+        Graphics.Blit(src, src, m_material);
     }
 }
