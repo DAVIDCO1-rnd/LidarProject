@@ -32,9 +32,17 @@ Shader "LidarSensor/Depth"
                 return o;
             }
 
+			float visualizeDepth(float depthVal)
+			{
+				float visualizeDepthVal = depthVal / 12.0f;
+				return visualizeDepthVal;
+			}
+
             fixed4 frag (v2f i) : SV_Target
             {
-                return GetDepth16(i.texcoord);
+                float depthVal = GetDepth32(i.texcoord);
+				float visualizeDepthVal = visualizeDepth(depthVal);
+				return visualizeDepthVal;
             }
             ENDCG
         }
