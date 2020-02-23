@@ -19,7 +19,14 @@ public class CameraPostProcessor : MonoBehaviour
     private void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
         if (m_material != null)
+        {
+            //RenderTexture temp = new RenderTexture(src);
+            //Graphics.Blit(src, temp, m_material);
+            //Graphics.Blit(temp, dest, m_material);
+
             Graphics.Blit(src, dest, m_material);
+        }
+            
 
         //Graphics.Blit(src, src, m_flipMaterial);
     }
