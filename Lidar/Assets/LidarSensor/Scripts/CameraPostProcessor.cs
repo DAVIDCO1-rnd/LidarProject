@@ -25,6 +25,11 @@ public class CameraPostProcessor : MonoBehaviour
             //Graphics.Blit(temp, dest, m_material);
 
             Graphics.Blit(src, dest, m_material);
+            if (dest != null)
+            {
+                int width = dest.width;
+                int height = dest.height;
+            }            
         }
             
 

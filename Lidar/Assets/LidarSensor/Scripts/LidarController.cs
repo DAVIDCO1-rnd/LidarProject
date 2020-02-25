@@ -7,7 +7,7 @@ public class LidarController : MonoBehaviour
     private const float CAMERA_FOV_DEG = 15f;
     private const float CAMERA_FOV_RAD = CAMERA_FOV_DEG * Mathf.Deg2Rad;
     private const float CAMERA_RANGE_MIN = 0.2f;
-    private const float CAMERA_RANGE_MAX = 10f;
+    private const float CAMERA_RANGE_MAX = 30f;
 
     // 
     public GameObject CamRange;

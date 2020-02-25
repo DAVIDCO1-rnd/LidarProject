@@ -1,4 +1,4 @@
-Shader "LidarSensor/Depth"
+Shader "LidarSensor/Depth1"
 {
     Properties
     {
@@ -20,26 +20,28 @@ Shader "LidarSensor/Depth"
 
             struct v2f
             {
-				float3 worldPos : TEXCOORD0;
+                float2 texcoord : TEXCOORD0;
+                float4 vertex : SV_POSITION;
             };
 
             v2f vert (appdata_base v)
             {
                 v2f o;
-				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.texcoord = v.texcoord;
                 return o;
             }
 
 			float visualizeDepth(float depthVal)
 			{
-				float visualizeDepthVal = depthVal * 255.0f;
+				float visualizeDepthVal = depthVal / 32.0f;
 				return visualizeDepthVal;
 			}
 
             fixed4 frag (v2f i) : SV_Target
             {
-				float distFromCamera = length(i.worldPos);
-				float visualizeDepthVal = visualizeDepth(distFromCamera);
+                float depthVal = GetDepth32(i.texcoord);
+				float visualizeDepthVal = visualizeDepth(depthVal);
 				return visualizeDepthVal;
             }
             ENDCG
