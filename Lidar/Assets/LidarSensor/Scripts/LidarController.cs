@@ -11,11 +11,11 @@ public class LidarController : MonoBehaviour
 
     // 
     public GameObject CamRange;
-    public float camerasRadius = 0.1f;
-    public int numOfCameras = 16;
+    public float camerasRadius;
+    public int numOfCameras;
 
-    public float cameraWidth;
-    public float cameraHeight;
+
+    private int numOfLidarSimulatedCameras = 920;
 
     //
     private List<Camera> m_camArray;
@@ -37,11 +37,12 @@ public class LidarController : MonoBehaviour
         // Unity disables it by default for faster renders
         cam.depthTextureMode |= DepthTextureMode.Depth;
 
-        //Camera has fixed width and height on every screen solution
-        //cam.pixelRect = new Rect(0, 0, cameraWidth, cameraHeight);
-
         //Add post processing shader which renders depth images
-        RenderDistFromCamera pp = cam.gameObject.AddComponent<RenderDistFromCamera>();
+        int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
+        //renderDistFromCamera.mWidth = cameraWidth;
+        //renderDistFromCamera.mHeight = 3;
+
     }
 
     private void CreateCameraArray()
@@ -72,12 +73,13 @@ public class LidarController : MonoBehaviour
     private void Start()
     {
         m_camArray = new List<Camera>();
-        cameraWidth = 360.0f / numOfCameras;
-        cameraHeight = cameraWidth;
+        //cameraWidth = 360.0f / numOfCameras;
+        //cameraHeight = cameraWidth;
         //cameraHeight = 3.0f;
 
         // Setup cameras
         CreateCameraArray();
+
 
         //for (int i = 1; i < Display.displays.Length; i++)
         //{

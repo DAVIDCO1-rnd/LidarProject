@@ -1348,7 +1348,7 @@ PrefabInstance:
     - target: {fileID: 1660526631168004709, guid: af300d2376124e775a58a8f8e4068e2d,
         type: 3}
       propertyPath: numOfCameras
-      value: 16
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af300d2376124e775a58a8f8e4068e2d, type: 3}

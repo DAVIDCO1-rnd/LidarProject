@@ -8,6 +8,7 @@ Shader "LidarSensor/Depth"
 
 			#pragma vertex vert  
 			#pragma fragment frag
+			#pragma enable_d3d11_debug_symbols
 
 			struct vertexInput
 			{
@@ -29,15 +30,15 @@ Shader "LidarSensor/Depth"
 				return output;
 			}
 
-			float visualizeDepth(float depthVal)
-			{
-				float maxVal = 6.8f;
-				float minVal = 2.0f;
-				float visualizeDepthVal = (depthVal - minVal) / (maxVal - minVal);
-				return visualizeDepthVal;
-			}
+			//float visualizeDepth(float depthVal)
+			//{
+			//	float maxVal = 6.8f;
+			//	float minVal = 2.0f;
+			//	float visualizeDepthVal = (depthVal - minVal) / (maxVal - minVal);
+			//	return visualizeDepthVal;
+			//}
 
-			float4 frag(vertexOutput input) : COLOR
+			float4 frag(vertexOutput input) : SV_Target
 			{
 				float4 cameraPosition = float4(_WorldSpaceCameraPos, 1.0);
 				float dist = distance(input.position_in_world_space , cameraPosition);
@@ -52,8 +53,8 @@ Shader "LidarSensor/Depth"
 				//{
 				//	return float4(0.0, 1.0, 0.0, 1.0);
 				//}
-				float visualizeDepthVal = visualizeDepth(dist);
-				return float4(visualizeDepthVal, visualizeDepthVal, visualizeDepthVal, 1.0);
+				//float visualizeDepthVal = visualizeDepth(dist);
+				return float4(0.2, 0.3, 0.4, 0.5);
 
 			}
 
