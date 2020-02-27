@@ -41,8 +41,7 @@ public class LidarController : MonoBehaviour
         //cam.pixelRect = new Rect(0, 0, cameraWidth, cameraHeight);
 
         //Add post processing shader which renders depth images
-        CameraPostProcessor pp = cam.gameObject.AddComponent<CameraPostProcessor>();
-        pp.Shader = Shader.Find("LidarSensor/Depth");
+        RenderDistFromCamera pp = cam.gameObject.AddComponent<RenderDistFromCamera>();
     }
 
     private void CreateCameraArray()
