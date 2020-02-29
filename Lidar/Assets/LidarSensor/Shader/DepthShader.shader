@@ -54,8 +54,9 @@ Shader "LidarSensor/Depth"
 				//	return float4(0.0, 1.0, 0.0, 1.0);
 				//}
 				//float visualizeDepthVal = visualizeDepth(dist);
-				return float4(0.2, 0.3, 0.4, 0.5);
 
+				//return float4(dist, dist, dist, dist);
+				return float4(30, 40, 50, 60);
 			}
 
 		ENDCG

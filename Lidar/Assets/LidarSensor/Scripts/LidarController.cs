@@ -8,6 +8,7 @@ public class LidarController : MonoBehaviour
     private const float CAMERA_FOV_RAD = CAMERA_FOV_DEG * Mathf.Deg2Rad;
     private const float CAMERA_RANGE_MIN = 0.2f;
     private const float CAMERA_RANGE_MAX = 30f;
+    private Color INFINITE_DISTANCE_COLOR = new Color(-1.0f, -1.0f, -1.0f, -1.0f);
 
     // 
     public GameObject CamRange;
@@ -36,9 +37,12 @@ public class LidarController : MonoBehaviour
         // Force camera to render depth buffer
         // Unity disables it by default for faster renders
         cam.depthTextureMode |= DepthTextureMode.Depth;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = INFINITE_DISTANCE_COLOR;
 
         //Add post processing shader which renders depth images
         int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        //int cameraWidth = 50; //TODO - david - temporary 
         cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
         //renderDistFromCamera.mWidth = cameraWidth;
         //renderDistFromCamera.mHeight = 3;

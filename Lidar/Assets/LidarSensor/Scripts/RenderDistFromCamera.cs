@@ -7,7 +7,7 @@ public class RenderDistFromCamera : MonoBehaviour
 {
     public Rect rect;
     public Texture2D tex;
-    public RenderTexture renderTexture;
+    //public RenderTexture renderTexture;
 
     Shader replacementShader;
     Camera mCamera;
@@ -15,30 +15,39 @@ public class RenderDistFromCamera : MonoBehaviour
     public int mHeight = 30;
     public float[] distancesFromCamera;
 
-    void Start()
-    {        
-        replacementShader = Shader.Find("LidarSensor/Depth");
+    private const float INFINITE_DISTANCE = -1.0f;
+
+    private void Start()
+    {
         mCamera = GetComponent<Camera>();
-        mCamera.pixelRect = new Rect(0, 0, (float)mWidth, (float)mHeight);
+        //int widthBefore = mCamera.pixelWidth;
+        //int heightBefore = mCamera.pixelHeight;
+        //mCamera.pixelRect = new Rect(0, 0, (float)mWidth, (float)mHeight);
+        //int widthAfter = mCamera.pixelWidth;
+        //int heightAfter = mCamera.pixelHeight;
+
+        replacementShader = Shader.Find("LidarSensor/Depth");
+
         if (replacementShader != null)
             mCamera.SetReplacementShader(replacementShader, "");
 
 
         rect = new Rect(0, 0, (float)mWidth, (float)mHeight);
-        renderTexture = new RenderTexture(mWidth, mHeight, 24);
+        //renderTexture = new RenderTexture(mWidth, mHeight, 24);
         tex = new Texture2D(mWidth, mHeight, TextureFormat.RGBAFloat, false);
     }
 
-    private void OnDestroy()
-    {
-#if UNITY_EDITOR
-        DestroyImmediate(renderTexture);
-        DestroyImmediate(tex);
-#else
-        Destroy(renderTexture);
-        Destroy(tex);
-#endif
-    }
+
+//    private void OnDestroy()
+//    {
+//#if UNITY_EDITOR
+//        DestroyImmediate(renderTexture);
+//        DestroyImmediate(tex);
+//#else
+//        Destroy(renderTexture);
+//        Destroy(tex);
+//#endif
+//    }
 
     //private void UpdateScreenshot()
     //{
@@ -82,18 +91,42 @@ public class RenderDistFromCamera : MonoBehaviour
     void Update()
     {
         RenderCamera();
+        
         //UpdateScreenshot();
         float[] buffer = tex.GetRawTextureData<float>().ToArray();
 
         // todo: evaulate cache-friendliness
         // todo: postpond division
         distancesFromCamera = new float[mWidth];
-          
-        for (int x = 0; x < mWidth; ++x)
-            for (int y = 0; y < mHeight; ++y)
+        int floatSize = sizeof(float);
+
+        int counter;
+        float sumDistances;
+        int arrIndex = 0;
+        for (int x = 0; x < floatSize * mWidth; x += floatSize)
+        {
+            counter = 0;
+            sumDistances = 0;
+            for (int y = 0; y < mHeight; y++)
             {
-                float currentDist = buffer[x * mHeight + y];
-                distancesFromCamera[x] += currentDist / (float)mHeight;
-            }                
+                int index = x + y * floatSize * mWidth;
+                float rVal = buffer[index];
+                if (rVal >= 0)
+                {
+                    counter++;
+                    sumDistances += rVal;
+                }
+            }
+            if (counter > 0)
+            {
+                float averageDistance = sumDistances / counter;
+                distancesFromCamera[arrIndex] = averageDistance;
+            }
+            else
+            {
+                distancesFromCamera[arrIndex] = INFINITE_DISTANCE;
+            }
+            arrIndex++;
+        }      
     }
 }
