@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class RenderDistFromCamera : MonoBehaviour
 {
     public Rect rect;
@@ -16,6 +16,7 @@ public class RenderDistFromCamera : MonoBehaviour
     public float[] distancesFromCamera;
 
     private const float INFINITE_DISTANCE = -1.0f;
+    bool writeToFile = true;
 
     private void Start()
     {
@@ -35,6 +36,7 @@ public class RenderDistFromCamera : MonoBehaviour
         rect = new Rect(0, 0, (float)mWidth, (float)mHeight);
         //renderTexture = new RenderTexture(mWidth, mHeight, 24);
         tex = new Texture2D(mWidth, mHeight, TextureFormat.RGBAFloat, false);
+        distancesFromCamera = new float[mWidth];
     }
 
 
@@ -86,30 +88,41 @@ public class RenderDistFromCamera : MonoBehaviour
         RenderTexture.ReleaseTemporary(rt);
     }
 
+    //void OnGUI()
+    //{
+    //    if (!tex)
+    //    {
+    //        Debug.LogError("Assign a Texture in the inspector.");
+    //        return;
+    //    }
 
+    //    //GUI.DrawTexture(new Rect(0, 0, (float)mWidth, (float)mHeight), tex, ScaleMode.ScaleToFit, true, 10.0F);
 
-    void Update()
+    //    if (Event.current.type.Equals(EventType.Repaint))
+    //    {
+    //        Graphics.DrawTexture(new Rect(0, 0, (float)mWidth, (float)mHeight), tex);
+    //    }
+    //}
+
+    void calculateDistances()
     {
-        RenderCamera();
-        
-        //UpdateScreenshot();
         float[] buffer = tex.GetRawTextureData<float>().ToArray();
-
         // todo: evaulate cache-friendliness
         // todo: postpond division
-        distancesFromCamera = new float[mWidth];
+
         int floatSize = sizeof(float);
+        int numOfBytesInWidth = floatSize * mWidth;
 
         int counter;
         float sumDistances;
         int arrIndex = 0;
-        for (int x = 0; x < floatSize * mWidth; x += floatSize)
+        for (int x = 0; x < numOfBytesInWidth; x += floatSize)
         {
             counter = 0;
             sumDistances = 0;
             for (int y = 0; y < mHeight; y++)
             {
-                int index = x + y * floatSize * mWidth;
+                int index = x + y * numOfBytesInWidth;
                 float rVal = buffer[index];
                 if (rVal >= 0)
                 {
@@ -127,6 +140,39 @@ public class RenderDistFromCamera : MonoBehaviour
                 distancesFromCamera[arrIndex] = INFINITE_DISTANCE;
             }
             arrIndex++;
-        }      
+        }
+    }
+
+    void writeTextureToFile()
+    {
+        float[] buffer = tex.GetRawTextureData<float>().ToArray();
+        string filePath = "david.csv";
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath);
+        int numOfBytesInWidth = 4 * mWidth;
+        for (int j = 0; j < mHeight; j++)
+        {            
+            for (int i = 0; i < numOfBytesInWidth; i += 4)
+            {
+                int index = j * numOfBytesInWidth + i;
+                float rVal = buffer[index];
+                writer.Write(rVal + ",");
+            }
+            writer.Write(System.Environment.NewLine);
+        }
+    }
+
+    void Update()
+    {
+        RenderCamera();
+        
+        //UpdateScreenshot();
+        
+        calculateDistances();
+        if (writeToFile)
+        {
+            writeTextureToFile();
+            writeToFile = false;
+        }
+        
     }
 }

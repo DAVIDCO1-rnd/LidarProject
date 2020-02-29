@@ -24,13 +24,13 @@ public class LidarController : MonoBehaviour
     private void SetupCamera(Camera cam, int target)
     {
         // Update camera setup
-        cam.enabled = false;
+        //cam.enabled = false;
 
         // Update generic data
         cam.fieldOfView = CAMERA_FOV_DEG;
         cam.nearClipPlane = CAMERA_RANGE_MIN - 0.05F;
         cam.farClipPlane = CAMERA_RANGE_MAX + 0.05f;
-        cam.enabled = true;
+        //cam.enabled = true;
         //if (target < Display.displays.Length)
         cam.targetDisplay = target;
 
@@ -39,10 +39,13 @@ public class LidarController : MonoBehaviour
         cam.depthTextureMode |= DepthTextureMode.Depth;
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = INFINITE_DISTANCE_COLOR;
+        cam.fieldOfView = 360.0f / numOfCameras;
 
         //Add post processing shader which renders depth images
-        int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
-        //int cameraWidth = 50; //TODO - david - temporary 
+        //int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        
+        int cameraWidth = 50; //TODO - david - temporary 
+        cam.fieldOfView = 20.0f; //TODO - david - temporary 
         cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
         //renderDistFromCamera.mWidth = cameraWidth;
         //renderDistFromCamera.mHeight = 3;
