@@ -230,14 +230,14 @@ public class RenderDistFromCamera : MonoBehaviour
         float[] buffer = resizedTex.GetRawTextureData<float>().ToArray();
         string filePath = folderPath + "/" + "matlabImage_" + debugConter.ToString() + ".csv";
         System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath);
-        int numOfBytesInWidth = 4 * mWidth;
+        int numOfFloatsInWidth = 4 * mWidth;
         for (int j = mHeight-1; j >= 0; j--) //reversing j since the the Y axis in the image is upside down
         {            
-            for (int i = 0; i < numOfBytesInWidth; i += 4)
+            for (int i = 0; i < numOfFloatsInWidth; i += 4)
             {
-                int index = j * numOfBytesInWidth + i;
+                int index = j * numOfFloatsInWidth + i;
                 float rVal = buffer[index];
-                if (i == numOfBytesInWidth - 4)
+                if (i == numOfFloatsInWidth - 4)
                     writer.Write(rVal);
                 else
                     writer.Write(rVal + ",");
