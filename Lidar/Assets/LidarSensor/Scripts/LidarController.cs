@@ -20,7 +20,8 @@ public class LidarController : MonoBehaviour
 
     //
     private List<Camera> m_camArray;
-
+    public float[] distancesFromAllSensors;
+    int cameraWidth;
     private void SetupCamera(Camera cam, int target)
     {
         // Update camera setup
@@ -42,7 +43,8 @@ public class LidarController : MonoBehaviour
         cam.fieldOfView = 360.0f / numOfCameras;
 
         //Add post processing shader which renders depth images
-        int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+
         
         cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
         //Tried to define  "renderDistFromCamera=cam.gameObject.AddComponent<RenderDistFromCamera>()" and then to call renderDistFromCamera.someVariable = value
@@ -76,18 +78,42 @@ public class LidarController : MonoBehaviour
 
     private void Start()
     {
+        distancesFromAllSensors = new float[numOfLidarSimulatedCameras];
         m_camArray = new List<Camera>();
-        //cameraWidth = 360.0f / numOfCameras;
-        //cameraHeight = cameraWidth;
-        //cameraHeight = 3.0f;
-
-        // Setup cameras
         CreateCameraArray();
+    }
 
+    private void LateUpdate()
+    {
+        //calling it after RenderDistFromCamera.Update()
+        //distancesFromAllSensors
+        //RenderDistFromCamera renderDistFromCamera = 
 
-        //for (int i = 1; i < Display.displays.Length; i++)
-        //{
-        //    Display.displays[i].Activate();
-        //}
+        int index = 0;
+        int centerWidth = (cameraWidth-1) / 2;
+        Camera firstCamera = m_camArray[0];
+        RenderDistFromCamera firstRenderDistFromCamera = firstCamera.GetComponent<RenderDistFromCamera>();
+        for (int j = centerWidth; j < cameraWidth; j++)
+        {
+            distancesFromAllSensors[index] = firstRenderDistFromCamera.distancesFromCamera[j];
+            index++;
+        }
+
+        for (int i = 1; i < numOfCameras; i++)
+        {
+            Camera cam = m_camArray[i];
+            RenderDistFromCamera renderDistFromCamera = cam.GetComponent<RenderDistFromCamera>();
+            for (int j=0; j < cameraWidth; j++)
+            {
+                distancesFromAllSensors[index] = renderDistFromCamera.distancesFromCamera[j];
+                index++;
+            }            
+        }
+
+        for (int j = 0 ; j <= centerWidth - 1 ; j++)
+        {
+            distancesFromAllSensors[index] = firstRenderDistFromCamera.distancesFromCamera[j];
+            index++;
+        }
     }
 }
