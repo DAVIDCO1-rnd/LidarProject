@@ -42,14 +42,11 @@ public class LidarController : MonoBehaviour
         cam.fieldOfView = 360.0f / numOfCameras;
 
         //Add post processing shader which renders depth images
-        //int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        int cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
         
-        int cameraWidth = 50; //TODO - david - temporary 
-        cam.fieldOfView = 20.0f; //TODO - david - temporary 
         cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
-        //renderDistFromCamera.mWidth = cameraWidth;
-        //renderDistFromCamera.mHeight = 3;
-
+        //Tried to define  "renderDistFromCamera=cam.gameObject.AddComponent<RenderDistFromCamera>()" and then to call renderDistFromCamera.someVariable = value
+        //The values of the variables did not pass to the class RenderDistFromCamera. so I assigned a single variable mWidth in AddComponent API. maybe I need to use struct in order to assign multiple variables?
     }
 
     private void CreateCameraArray()
