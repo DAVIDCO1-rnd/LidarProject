@@ -34,6 +34,9 @@ public class RenderDistFromCamera : MonoBehaviour
         distancesFromCamera = new float[mWidth];
     }
 
+
+    //ResizeTexture is taken from this link: http://blog.collectivemass.com/2014/03/resizing-textures-in-unity/
+    //Using tex.Resize(..) and then tex.Apple() didn't work
     public enum ImageFilterMode : int
     {
         Nearest = 0,
