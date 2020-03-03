@@ -22,6 +22,8 @@ public class LidarController : MonoBehaviour
     private List<Camera> m_camArray;
     public float[] distancesFromAllSensors;
     int cameraWidth;
+    private bool debugMovement = false;
+    private float movement;
     private void SetupCamera(Camera cam, int target)
     {
         // Update camera setup
@@ -44,8 +46,9 @@ public class LidarController : MonoBehaviour
 
         //Add post processing shader which renders depth images
         cameraWidth = numOfLidarSimulatedCameras / numOfCameras;
+        //cameraWidth = 500;
 
-        
+
         cam.gameObject.AddComponent<RenderDistFromCamera>().mWidth = cameraWidth;
         //Tried to define  "renderDistFromCamera=cam.gameObject.AddComponent<RenderDistFromCamera>()" and then to call renderDistFromCamera.someVariable = value
         //The values of the variables did not pass to the class RenderDistFromCamera. so I assigned a single variable mWidth in AddComponent API. maybe I need to use struct in order to assign multiple variables?
@@ -78,9 +81,20 @@ public class LidarController : MonoBehaviour
 
     private void Start()
     {
+        if (debugMovement)
+            movement = 1.0f;
         distancesFromAllSensors = new float[numOfLidarSimulatedCameras];
         m_camArray = new List<Camera>();
         CreateCameraArray();
+    }
+
+    private void Update()
+    {
+        if (debugMovement)
+        {
+            movement = -movement;
+            transform.parent.transform.position += new Vector3(movement, movement, movement);
+        }
     }
 
     private void LateUpdate()
@@ -90,7 +104,7 @@ public class LidarController : MonoBehaviour
         //RenderDistFromCamera renderDistFromCamera = 
 
         int index = 0;
-        int centerWidth = (cameraWidth-1) / 2;
+        int centerWidth = (cameraWidth - 1) / 2;
         Camera firstCamera = m_camArray[0];
         RenderDistFromCamera firstRenderDistFromCamera = firstCamera.GetComponent<RenderDistFromCamera>();
         for (int j = centerWidth; j < cameraWidth; j++)
@@ -103,14 +117,14 @@ public class LidarController : MonoBehaviour
         {
             Camera cam = m_camArray[i];
             RenderDistFromCamera renderDistFromCamera = cam.GetComponent<RenderDistFromCamera>();
-            for (int j=0; j < cameraWidth; j++)
+            for (int j = 0; j < cameraWidth; j++)
             {
                 distancesFromAllSensors[index] = renderDistFromCamera.distancesFromCamera[j];
                 index++;
-            }            
+            }
         }
 
-        for (int j = 0 ; j <= centerWidth - 1 ; j++)
+        for (int j = 0; j <= centerWidth - 1; j++)
         {
             distancesFromAllSensors[index] = firstRenderDistFromCamera.distancesFromCamera[j];
             index++;

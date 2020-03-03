@@ -11,7 +11,7 @@ public class RenderDistFromCamera : MonoBehaviour
     Shader replacementShader;
     Camera mCamera;
     public int mWidth;
-    public int mHeight = 30;
+    public int mHeight = 3;
     public float[] distancesFromCamera;
 
     private const float INFINITE_DISTANCE = -1.0f;    
@@ -20,9 +20,10 @@ public class RenderDistFromCamera : MonoBehaviour
 
     bool debugWriteToFile = true;
     static int debugConter = 0;
+    
 
     private void Start()
-    {
+    {        
         mCamera = GetComponent<Camera>();
         //I tried using "mCamera.pixelRect = new Rect(0, 0, (float)mWidth, (float)mHeight)" in order to declare camera with the desired resolution. But the shader attached to the camera didn't work well. Therefore, I'm using the shader on the screen resolution and only then I resize the camera resolution.
         screenWidth = mCamera.pixelWidth;
@@ -30,7 +31,10 @@ public class RenderDistFromCamera : MonoBehaviour
         replacementShader = Shader.Find("LidarSensor/Depth");
         if (replacementShader != null)
             mCamera.SetReplacementShader(replacementShader, "");
+
         tex = new Texture2D(screenWidth, screenHeight, TextureFormat.RGBAFloat, false);
+        resizedTex = new Texture2D(mWidth, mHeight, TextureFormat.RGBAFloat, false);
+
         distancesFromCamera = new float[mWidth];
     }
 
@@ -43,24 +47,20 @@ public class RenderDistFromCamera : MonoBehaviour
         Biliner = 1,
         Average = 2
     }
-    public static Texture2D ResizeTexture(Texture2D pSource, ImageFilterMode pFilterMode, float xWidth, float xHeight)
+    public void ResizeTexture(ImageFilterMode pFilterMode)
     {
-
         //*** Variables
         int i;
 
         //*** Get All the source pixels
-        Color[] aSourceColor = pSource.GetPixels(0);
-        Vector2 vSourceSize = new Vector2(pSource.width, pSource.height);
-
-        //*** Make New
-        Texture2D oNewTex = new Texture2D((int)xWidth, (int)xHeight, TextureFormat.RGBAFloat, false);
+        Color[] aSourceColor = tex.GetPixels(0);
+        Vector2 vSourceSize = new Vector2(tex.width, tex.height);
 
         //*** Make destination array
-        int xLength = (int)xWidth * (int)xHeight;
+        int xLength = mWidth * mHeight;
         Color[] aColor = new Color[xLength];
 
-        Vector2 vPixelSize = new Vector2(vSourceSize.x / xWidth, vSourceSize.y / xHeight);
+        Vector2 vPixelSize = new Vector2(vSourceSize.x / mWidth, vSourceSize.y / mHeight);
 
         //*** Loop through destination pixels and process
         Vector2 vCenter = new Vector2();
@@ -68,12 +68,12 @@ public class RenderDistFromCamera : MonoBehaviour
         {
 
             //*** Figure out x&y
-            float xX = (float)i % xWidth;
-            float xY = Mathf.Floor((float)i / xWidth);
+            float xX = (float)i % mWidth;
+            float xY = Mathf.Floor((float)i / mWidth);
 
             //*** Calculate Center
-            vCenter.x = (xX / xWidth) * vSourceSize.x;
-            vCenter.y = (xY / xHeight) * vSourceSize.y;
+            vCenter.x = (xX / mWidth) * vSourceSize.x;
+            vCenter.y = (xY / mHeight) * vSourceSize.y;
 
             //*** Do Based on mode
             //*** Nearest neighbour (testing)
@@ -145,11 +145,8 @@ public class RenderDistFromCamera : MonoBehaviour
         }
 
         //*** Set Pixels
-        oNewTex.SetPixels(aColor);
-        oNewTex.Apply();
-
-        //*** Return
-        return oNewTex;
+        resizedTex.SetPixels(aColor);
+        resizedTex.Apply();
     }
 
     private void RenderCamera()
@@ -164,8 +161,8 @@ public class RenderDistFromCamera : MonoBehaviour
         mCamera.Render();
         // Set texture2D
         tex.ReadPixels(new Rect(0, 0, (float)screenWidth, (float)screenHeight), 0, 0);        
-        tex.Apply();        
-        resizedTex = ResizeTexture(tex, ImageFilterMode.Nearest, mWidth, mHeight);
+        tex.Apply();
+        ResizeTexture(ImageFilterMode.Nearest);
         //Not destroying tex since it is used in 'Update()' every frame
         // post-render
         RenderTexture.active = currentRT;
@@ -260,6 +257,6 @@ public class RenderDistFromCamera : MonoBehaviour
             debugConter++;
             debugWriteTextureToFile();
             debugWriteToFile = false;
-        }        
+        }
     }
 }
