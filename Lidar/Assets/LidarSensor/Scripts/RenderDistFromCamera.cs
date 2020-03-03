@@ -1,180 +1,62 @@
-﻿using System.Collections;
+﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class RenderDistFromCamera : MonoBehaviour
 {
+    public RenderTexture renderTexture;
     public Texture2D tex;
-    public Texture2D resizedTex;
+    public Rect rect;
 
-    Shader replacementShader;
-    Camera mCamera;
     public int mWidth;
     public int mHeight = 3;
     public float[] distancesFromCamera;
 
-    private const float INFINITE_DISTANCE = -1.0f;    
-    int screenWidth;
-    int screenHeight;
+    private bool debugWriteToFile = true;
+    private static int debugConter = 0;
 
-    bool debugWriteToFile = true;
-    static int debugConter = 0;
-    
+    private const float INFINITE_DISTANCE = -1.0f;
+    private Shader replacementShader;
+    private Camera mCamera;
 
     private void Start()
-    {        
+    {
         mCamera = GetComponent<Camera>();
-        //I tried using "mCamera.pixelRect = new Rect(0, 0, (float)mWidth, (float)mHeight)" in order to declare camera with the desired resolution. But the shader attached to the camera didn't work well. Therefore, I'm using the shader on the screen resolution and only then I resize the camera resolution.
-        screenWidth = mCamera.pixelWidth;
-        screenHeight = mCamera.pixelHeight;
+
         replacementShader = Shader.Find("LidarSensor/Depth");
         if (replacementShader != null)
             mCamera.SetReplacementShader(replacementShader, "");
 
-        tex = new Texture2D(screenWidth, screenHeight, TextureFormat.RGBAFloat, false);
-        resizedTex = new Texture2D(mWidth, mHeight, TextureFormat.RGBAFloat, false);
+        tex = new Texture2D(mWidth, mHeight, TextureFormat.RGBAFloat, false);
+        renderTexture = new RenderTexture(mWidth, mHeight, 0, RenderTextureFormat.ARGBFloat);
+        rect = new Rect(0, 0, mWidth, mHeight);
 
         distancesFromCamera = new float[mWidth];
-    }
-
-
-    //ResizeTexture is taken from this link: http://blog.collectivemass.com/2014/03/resizing-textures-in-unity/
-    //Using tex.Resize(..) and then tex.Apple() didn't work
-    public enum ImageFilterMode : int
-    {
-        Nearest = 0,
-        Biliner = 1,
-        Average = 2
-    }
-    public void ResizeTexture(ImageFilterMode pFilterMode)
-    {
-        //*** Variables
-        int i;
-
-        //*** Get All the source pixels
-        Color[] aSourceColor = tex.GetPixels(0);
-        Vector2 vSourceSize = new Vector2(tex.width, tex.height);
-
-        //*** Make destination array
-        int xLength = mWidth * mHeight;
-        Color[] aColor = new Color[xLength];
-
-        Vector2 vPixelSize = new Vector2(vSourceSize.x / mWidth, vSourceSize.y / mHeight);
-
-        //*** Loop through destination pixels and process
-        Vector2 vCenter = new Vector2();
-        for (i = 0; i < xLength; i++)
-        {
-
-            //*** Figure out x&y
-            float xX = (float)i % mWidth;
-            float xY = Mathf.Floor((float)i / mWidth);
-
-            //*** Calculate Center
-            vCenter.x = (xX / mWidth) * vSourceSize.x;
-            vCenter.y = (xY / mHeight) * vSourceSize.y;
-
-            //*** Do Based on mode
-            //*** Nearest neighbour (testing)
-            if (pFilterMode == ImageFilterMode.Nearest)
-            {
-
-                //*** Nearest neighbour (testing)
-                vCenter.x = Mathf.Round(vCenter.x);
-                vCenter.y = Mathf.Round(vCenter.y);
-
-                //*** Calculate source index
-                int xSourceIndex = (int)((vCenter.y * vSourceSize.x) + vCenter.x);
-
-                //*** Copy Pixel
-                aColor[i] = aSourceColor[xSourceIndex];
-            }
-
-            //*** Bilinear
-            else if (pFilterMode == ImageFilterMode.Biliner)
-            {
-
-                //*** Get Ratios
-                float xRatioX = vCenter.x - Mathf.Floor(vCenter.x);
-                float xRatioY = vCenter.y - Mathf.Floor(vCenter.y);
-
-                //*** Get Pixel index's
-                int xIndexTL = (int)((Mathf.Floor(vCenter.y) * vSourceSize.x) + Mathf.Floor(vCenter.x));
-                int xIndexTR = (int)((Mathf.Floor(vCenter.y) * vSourceSize.x) + Mathf.Ceil(vCenter.x));
-                int xIndexBL = (int)((Mathf.Ceil(vCenter.y) * vSourceSize.x) + Mathf.Floor(vCenter.x));
-                int xIndexBR = (int)((Mathf.Ceil(vCenter.y) * vSourceSize.x) + Mathf.Ceil(vCenter.x));
-
-                //*** Calculate Color
-                aColor[i] = Color.Lerp(
-                    Color.Lerp(aSourceColor[xIndexTL], aSourceColor[xIndexTR], xRatioX),
-                    Color.Lerp(aSourceColor[xIndexBL], aSourceColor[xIndexBR], xRatioX),
-                    xRatioY
-                );
-            }
-
-            //*** Average
-            else if (pFilterMode == ImageFilterMode.Average)
-            {
-
-                //*** Calculate grid around point
-                int xXFrom = (int)Mathf.Max(Mathf.Floor(vCenter.x - (vPixelSize.x * 0.5f)), 0);
-                int xXTo = (int)Mathf.Min(Mathf.Ceil(vCenter.x + (vPixelSize.x * 0.5f)), vSourceSize.x);
-                int xYFrom = (int)Mathf.Max(Mathf.Floor(vCenter.y - (vPixelSize.y * 0.5f)), 0);
-                int xYTo = (int)Mathf.Min(Mathf.Ceil(vCenter.y + (vPixelSize.y * 0.5f)), vSourceSize.y);
-
-                //*** Loop and accumulate
-                Color oColorTemp = new Color();
-                float xGridCount = 0;
-                for (int iy = xYFrom; iy < xYTo; iy++)
-                {
-                    for (int ix = xXFrom; ix < xXTo; ix++)
-                    {
-
-                        //*** Get Color
-                        oColorTemp += aSourceColor[(int)(((float)iy * vSourceSize.x) + ix)];
-
-                        //*** Sum
-                        xGridCount++;
-                    }
-                }
-
-                //*** Average Color
-                aColor[i] = oColorTemp / (float)xGridCount;
-            }
-        }
-
-        //*** Set Pixels
-        resizedTex.SetPixels(aColor);
-        resizedTex.Apply();
     }
 
     private void RenderCamera()
     {
         // setup render texture
-        RenderTexture rt = RenderTexture.GetTemporary(screenWidth, screenHeight, 24, RenderTextureFormat.ARGBFloat);
-        RenderTexture currentRT = RenderTexture.active;
-        RenderTexture.active = rt;
-        mCamera.targetTexture = rt;
-        
+        var currentRT = RenderTexture.active;
+        RenderTexture.active = renderTexture;
+        mCamera.targetTexture = renderTexture;
+
         // Render the camera's view.
         mCamera.Render();
+
         // Set texture2D
-        tex.ReadPixels(new Rect(0, 0, (float)screenWidth, (float)screenHeight), 0, 0);        
+        tex.ReadPixels(rect, 0, 0);
         tex.Apply();
-        ResizeTexture(ImageFilterMode.Nearest);
-        //Not destroying tex since it is used in 'Update()' every frame
+
         // post-render
         RenderTexture.active = currentRT;
-        mCamera.targetTexture = currentRT; //show the scene on the screen
-        RenderTexture.ReleaseTemporary(rt);
     }
 
-
-    void calculateDistances()
-    {        
-        float[] buffer = resizedTex.GetRawTextureData<float>().ToArray();
-        int numOfFloatsInPixel = 4; //fragment shader returns float4
+    private void CalculateDistances()
+    {
+        float[] buffer = tex.GetRawTextureData<float>().ToArray();
+        const int numOfFloatsInPixel = 4; //fragment shader returns float4
         int numOfFloatsInWidth = numOfFloatsInPixel * mWidth;
 
         int counter;
@@ -186,7 +68,7 @@ public class RenderDistFromCamera : MonoBehaviour
             sumDistances = 0;
             for (int y = 0; y < mHeight; y++)
             {
-                int index = x + y * numOfFloatsInWidth;
+                int index = x + (y * numOfFloatsInWidth);
                 float rVal = buffer[index]; //fragment shader returns float4(dist, dist, dist, dist) so we can read the distance from any of the 4 components
                 if (rVal >= 0) //if rVal<0 it means that it is background (distance is infinite)
                 {
@@ -207,10 +89,10 @@ public class RenderDistFromCamera : MonoBehaviour
         }
     }
 
-    void debugWriteTextureToFile()
+    private void DebugWriteTextureToFile()
     {
         //this function is used for debugging. you can use matlab code script_read_image_from_csv.m to see the Texture2D frames of each camera
-        string folderPath = "Debug_Images";
+        const string folderPath = "Debug_Images";
         if (debugConter == 1)
         {
             bool isFolderExists = System.IO.Directory.Exists(folderPath);
@@ -227,15 +109,15 @@ public class RenderDistFromCamera : MonoBehaviour
         }
 
         //This function is used to read the texture in matlab so we can see the Texture2D
-        float[] buffer = resizedTex.GetRawTextureData<float>().ToArray();
-        string filePath = folderPath + "/" + "matlabImage_" + debugConter.ToString() + ".csv";
+        float[] buffer = tex.GetRawTextureData<float>().ToArray();
+        string filePath = folderPath + "/matlabImage_" + debugConter.ToString() + ".csv";
         System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath);
         int numOfFloatsInWidth = 4 * mWidth;
-        for (int j = mHeight-1; j >= 0; j--) //reversing j since the the Y axis in the image is upside down
-        {            
+        for (int j = mHeight - 1; j >= 0; j--) //reversing j since the the Y axis in the image is upside down
+        {
             for (int i = 0; i < numOfFloatsInWidth; i += 4)
             {
-                int index = j * numOfFloatsInWidth + i;
+                int index = (j * numOfFloatsInWidth) + i;
                 float rVal = buffer[index];
                 if (i == numOfFloatsInWidth - 4)
                     writer.Write(rVal);
@@ -247,16 +129,27 @@ public class RenderDistFromCamera : MonoBehaviour
         writer.Close();
     }
 
-    void Update()
+    private void Update()
     {
-        RenderCamera();        
-        calculateDistances();
+        RenderCamera();
+        CalculateDistances();
 
         if (debugWriteToFile)
         {
             debugConter++;
-            debugWriteTextureToFile();
+            DebugWriteTextureToFile();
             debugWriteToFile = false;
         }
+    }
+
+    private void OnDestory()
+    {
+    #if UNITY_EDITOR
+        DestroyImmediate(renderTexture);
+        DestroyImmediate(tex);
+    #else
+        Destroy(renderTexture);
+        Destroy(tex);
+    #endif
     }
 }
