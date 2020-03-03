@@ -10,7 +10,7 @@ public class RenderDistFromCamera : MonoBehaviour
     public Rect rect;
 
     public int mWidth;
-    public int mHeight = 3;
+    public int mHeight;
     public float[] distancesFromCamera;
 
     private bool debugWriteToFile = true;
@@ -22,6 +22,7 @@ public class RenderDistFromCamera : MonoBehaviour
 
     private void Start()
     {
+        mHeight = mWidth; //it's equal so that two consecutive frames will not overlap each other
         mCamera = GetComponent<Camera>();
 
         replacementShader = Shader.Find("LidarSensor/Depth");
