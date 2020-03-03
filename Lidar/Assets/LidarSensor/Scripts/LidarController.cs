@@ -22,7 +22,7 @@ public class LidarController : MonoBehaviour
     private List<Camera> m_camArray;
     public float[] distancesFromAllSensors;
     int cameraWidth;
-    private bool debugMovement = false;
+    private bool debugMovement = true;
     private float movement;
     private void SetupCamera(Camera cam, int target)
     {
